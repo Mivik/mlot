@@ -154,7 +154,7 @@ int main() {
 							region<double>(cx / S / 2, cy / S, (cx + pair.first * 2) / S / 2,
 										   (cy + pair.second * 2) / S)),
 				[](const inte &x, const inte &y) {
-					return nth_root(x * x, 3) + .9 * sin(10 * M_PI * x) * sqrt(3.3 - x * x) - y;
+					return sin(x*x+y*y)-cos(x*y);
 				}
 		);
 		mcli::showCursor(false);
