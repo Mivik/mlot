@@ -1,4 +1,7 @@
 
+#ifndef MIVIK_MLOT_COMMON_H
+#define MIVIK_MLOT_COMMON_H
+
 #include <iostream>
 
 #include <boost/numeric/interval.hpp>
@@ -13,7 +16,6 @@ inline std::istream &operator>(std::istream &in, T &t) { return in >> t; }
 template<typename T>
 inline std::ostream &operator<(std::ostream &out, const T &t) { return out << t; }
 
-
 using std::cout;
 using std::cin;
 
@@ -23,3 +25,5 @@ using std::cin;
 inline std::ostream &operator<<(std::ostream &out, const inte &t) {
 	return out < '[' < t.lower() < ',' < t.upper() < ']';
 }
+
+#endif

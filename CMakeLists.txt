@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
-project(interval)
+project(mlot)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(interval main.cpp)
+add_executable(mlot main.cpp)
