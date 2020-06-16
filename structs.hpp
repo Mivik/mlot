@@ -2,12 +2,16 @@
 #ifndef MIVIK_MLOT_STRUCTS_HPP
 #define MIVIK_MLOT_STRUCTS_HPP
 
+#include <functional>
 #include <iostream>
 #include <utility>
 #include <tuple>
 
 #include "common.hpp"
 #include "math.hpp"
+
+typedef const std::function<bool(const inte &, const inte &)> &graph_t;
+typedef const std::function<void(int, int, char)> &plotter_t;
 
 template<typename T>
 struct point {
@@ -40,16 +44,14 @@ struct region {
 		return lb.x > rt.x || lb.y > rt.y;
 	}
 
+	inline bool overlap(graph_t plotter) const {
+		return plotter(inte(lb.x, rt.x), inte(lb.y, rt.y));
+	}
+
 	inline friend std::ostream &operator<(std::ostream &out, const region<T> &t) {
 		return out < '[' < t.lb < ' ' < t.rt < ']';
 	}
 };
-
-inline inte xInterval(const region<double> &region) { return inte(region.lb.x, region.rt.x); }
-
-inline inte yInterval(const region<double> &region) { return inte(region.lb.y, region.rt.y); }
-
-int width, height;
 
 struct plot_region {
 	region<int> display;
@@ -64,8 +66,8 @@ struct plot_region {
 		return plot_region(range, region<double>(
 				point<double>(real.lb.x + rw * (range.lb.x - display.lb.x),
 							  real.lb.y + rh * (range.lb.y - display.lb.y)),
-				point<double>(real.lb.x + rw * length(display.lb.x, range.rt.x),
-							  real.lb.y + rh * length(display.lb.y, range.rt.y))));
+				point<double>((real.lb.x + rw * length(display.lb.x, range.rt.x)),
+							  (real.lb.y + rh * length(display.lb.y, range.rt.y)))));
 	}
 
 	inline std::tuple<plot_region, plot_region, plot_region, plot_region> split() const {

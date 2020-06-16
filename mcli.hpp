@@ -30,11 +30,11 @@ namespace mcli {
 
 #if defined(__linux__)
 
-#include <cstdlib>
-#include <cstdio>
-
 #include <termio.h>
 #include <unistd.h>
+
+#include <cstdlib>
+#include <cstdio>
 
 inline void mcli::init() {}
 

@@ -1,66 +1,67 @@
 
+#include <signal.h>
+
 #include <functional>
 #include <cmath>
 #include <queue>
 
 #include "structs.hpp"
+#include "common.hpp"
 #include "mcli.hpp"
+#include "plot.hpp"
 
-typedef const std::function<bool(const inte &, const inte &)> &plotter_t;
+int width, height;
 
-struct equation_plotter {
+struct equation_graph {
 	using equation_t = std::function<inte(const inte &, const inte &)>;
 	equation_t equation;
-	equation_plotter(const equation_t& equation): equation(equation) {}
+	equation_graph(const equation_t& equation): equation(equation) {}
 	inline bool operator()(const inte &x, const inte &y) const { return boost::numeric::zero_in(equation(x, y)); }
+};
+
+struct console_plotter {
+	inline void operator()(int x, int y, char c) {
+		mcli::move(height - y - 1, x);
+		putchar(c);
+	}
 };
 
 void *originConfig;
 
 inline void restoreConfig() { mcli::loadConfig(originConfig); }
 
-inline void plot(const plot_region &origin, plotter_t plotter) {
-	std::queue<plot_region> q;
-	q.push(origin);
-	while (!q.empty()) {
-		plot_region region = q.front();
-		q.pop();
-		if (region.display.empty()) continue;
-		if (!plotter(xInterval(region.real), yInterval(region.real))) continue;
-		if (region.display.lb.x == region.display.rt.x && region.display.lb.y == region.display.rt.y) {
-			mcli::move(height - region.display.lb.y - 1, region.display.lb.x);
-			putchar('#');
-			continue;
-		}
-		auto tuple = region.split();
-		q.push(std::get<0>(tuple));
-		q.push(std::get<1>(tuple));
-		q.push(std::get<2>(tuple));
-		q.push(std::get<3>(tuple));
-	}
+double cx, cy;
+void windowChangeListener(int) {
+	auto pair = mcli::size();
+	width = pair.first;
+	height = pair.second;
+	cx = -pair.first;
+	cy = -pair.second;
 }
 
 int main() {
+	signal(SIGWINCH, windowChangeListener);
 	mcli::init();
 	originConfig = mcli::saveConfig();
 	atexit(restoreConfig);
 	mcli::echo(false);
 	mcli::clearScreen();
 	mcli::rawMode();
-	auto pair = mcli::size();
-	width = pair.first;
-	height = pair.second;
+	windowChangeListener(0);
 	double S = 50;
 	double speed = 2;
-	double cx = -pair.first, cy = -pair.second;
 	for (;;) {
 		plot(
-				plot_region(region<int>(0, 0, pair.first - 1, pair.second - 1),
-							region<double>(cx / S / 2, cy / S, (cx + pair.first * 2) / S / 2,
-										   (cy + pair.second * 2) / S)),
-				equation_plotter([](const inte &x, const inte &y) {
-					return sin(x*x+y*y)-cos(x*y);
-				})
+				plot_region(region<int>(0, 0, width-1, height-1),
+							region<double>(cx / S / 2, cy / S, (cx + width * 2) / S / 2,
+										   (cy + height * 2) / S)),
+				/*equation_graph([](const inte &x, const inte &y) {
+					return exp(sin(x)+cos(y))-sin(exp(x+y));
+				}),*/
+				[](const inte& x, const inte& y) {
+					return x.upper()>=y.lower();
+				},
+				console_plotter()
 		);
 		mcli::showCursor(false);
 		switch (mcli::getKey()) {
